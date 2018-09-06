@@ -3,10 +3,12 @@ CURRENT_DIR=`pwd`
 
 NDKLEVEL=21
 
-PJSIP_ROOT=/home/jameskarl/sip/pjsip/pjproject-2.7.2
-OPEN_H264=/home/jameskarl/sip/pjsip/openh264
-LIBYUV=/home/jameskarl/sip/pjsip/libyuv
-DEST_ROOT=/home/jameskarl/sip/pjsip/output
+ROOT=/home/jameskarl/sip/pjsip
+
+PJSIP_ROOT=$ROOT/pjproject-2.7.2
+OPEN_H264=$ROOT/openh264
+LIBYUV=$ROOT/libyuv-android/
+DEST_ROOT=$ROOT/output
 
 ################################################################
 APP_SWIG_ROOT=$PJSIP_ROOT/pjsip-apps/src/swig
@@ -17,13 +19,15 @@ APP_SWIG_ANDROID_SO=$APP_SWIG_ROOT/java/android/app/src/main/jniLibs
 DEST_JAR_LIBS=$DEST_ROOT/libs
 DEST_SO_LIBS=$DEST_ROOT/src/main/jniLibs
 
+DEST_LIBYUV=$DEST_ROOT/libyuv/jni/out/Release
+DEST_LIBYUV_JNI_LIBS=$DEST_ROOT/libyuv/jniLibs
+
 SO_NAME=libpjsua2.so
 JAR_NAME=pjsip.jar
 JAR_SRC_NAME=pjsip-src.jar
 
-##supported target: armeabi, armeabi-v7a, arm64-v8a, x86, x86_64, mips, mips64, 
-
 ## https://github.com/cisco/openh264
+##supported target: armeabi, armeabi-v7a, arm64-v8a, x86, x86_64, mips, mips64, 
 function make_open_h264() {
 	cd $OPEN_H264
 	local target=$1
@@ -48,7 +52,7 @@ function make_open_h264() {
 	# To build for 64-bit ABI, such as arm64, explicitly set NDKLEVEL to 21 or higher.
 	# NDKLEVEL specifies android api level, the default is 12
 
-	echo make OS=android NDKROOT=$ANDROID_NDK_ROOT TARGET=android-$NDKLEVEL NDKLEVEL=$NDKLEVEL 
+	echo make OS=android NDKROOT=$ANDROID_NDK_ROOT TARGET=android-$NDKLEVEL NDKLEVEL=$NDKLEVEL ARCH=$architecture
 	make OS=android NDKROOT=$ANDROID_NDK_ROOT TARGET=android-$NDKLEVEL NDKLEVEL=$NDKLEVEL ARCH=$architecture
 
 	echo cp $OPEN_H264/libopenh264.so  $DEST_SO_LIBS/$target
@@ -56,14 +60,30 @@ function make_open_h264() {
 	cp $OPEN_H264/libopenh264.so  $DEST_SO_LIBS/$target
 }
 
+# will build all targets.
+#target support: armeabi, armeabi-v7a, arm64-v8a, x86, x86_64
 function make_libyuv() {
 	cd $LIBYUV
-	make -f linux.mk
+	ndk-build
+
+	mkdir -p $DEST_LIBYUV
+	mkdir -p $DEST_LIBYUV_JNI_LIBS
+
+	cp -r $LIBYUV/libs/* $DEST_LIBYUV_JNI_LIBS
 }
 
+#target support: armeabi, armeabi-v7a, arm64-v8a, x86, x86_64
+function prepare_libyuv() {
+	local target=$1
+	mkdir -p $DEST_LIBYUV
+
+	echo cp $DEST_LIBYUV_JNI_LIBS/$target/libyuv.so $DEST_LIBYUV
+	cp $DEST_LIBYUV_JNI_LIBS/$target/libyuv.so $DEST_LIBYUV
+}
+
+#target support: armeabi, armeabi-v7a, arm64-v8a, x86, x86_64, mips, mips64
 function make_target(){
 	make_open_h264 $1
-	make_libyuv
 
 	cd $PJSIP_ROOT
 	local target=$1
@@ -96,7 +116,7 @@ function make_target(){
 	cp $APP_SWIG_ANDROID_SO/armeabi/$SO_NAME $DEST_SO_LIBS/$target
 }
 
-
+make_libyuv
 ##supported target: armeabi, armeabi-v7a, arm64-v8a, x86, x86_64, mips, mips64, 
 #make_target armeabi
 make_target armeabi-v7a
