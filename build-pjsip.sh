@@ -1,7 +1,7 @@
 #!/bin/bash
 CURRENT_DIR=`pwd`
 
-NDKLEVEL=19
+NDKLEVEL=21
 
 PJSIP_ROOT=/home/jameskarl/sip/pjsip/pjproject-2.7.2
 OPEN_H264=/home/jameskarl/sip/pjsip/openh264
@@ -21,17 +21,25 @@ SO_NAME=libpjsua2.so
 JAR_NAME=pjsip.jar
 JAR_SRC_NAME=pjsip-src.jar
 
+##supported target: armeabi, armeabi-v7a, arm64-v8a, x86, x86_64, mips, mips64, 
+
 ## https://github.com/cisco/openh264
 function make_open_h264() {
 	cd $OPEN_H264
 	local target=$1
 
-	architecture=arm
-	if [ "$target" = "armeabi" ] ; then
-		architecture=armeabi
-	fi 
 
-	#ARCK: Currently arm, arm64, x86 and x86_64 are supported, the default is arm. 
+	local architecture=arm #default armeabi-v7a
+
+	if [ "$target" = "armeabi-v7a" ] ; then
+		architecture=arm
+	elif [ "$target" = "arm64-v8a" ] ; then
+		architecture=arm64
+	else
+		architecture=$target
+	fi
+
+	#ARCH: Currently arm, arm64, x86 and x86_64 are supported, the default is arm. 
 	#	   mips and mips64 can also be used, but there's no specific optimization for those architectures.)
 
 	# By default these commands build for the armeabi-v7a ABI. 
@@ -40,7 +48,8 @@ function make_open_h264() {
 	# To build for 64-bit ABI, such as arm64, explicitly set NDKLEVEL to 21 or higher.
 	# NDKLEVEL specifies android api level, the default is 12
 
-	make OS=android NDKROOT=$ANDROID_NDK_ROOT TARGET=android-$NDKLEVEL NDKLEVEL=$NDKLEVEL 
+	echo make OS=android NDKROOT=$ANDROID_NDK_ROOT TARGET=android-$NDKLEVEL NDKLEVEL=$NDKLEVEL 
+	make OS=android NDKROOT=$ANDROID_NDK_ROOT TARGET=android-$NDKLEVEL NDKLEVEL=$NDKLEVEL ARCH=$architecture
 
 	echo cp $OPEN_H264/libopenh264.so  $DEST_SO_LIBS/$target
 	mkdir -p $DEST_SO_LIBS/$target
@@ -87,6 +96,8 @@ function make_target(){
 	cp $APP_SWIG_ANDROID_SO/armeabi/$SO_NAME $DEST_SO_LIBS/$target
 }
 
+
+##supported target: armeabi, armeabi-v7a, arm64-v8a, x86, x86_64, mips, mips64, 
 #make_target armeabi
 make_target armeabi-v7a
 

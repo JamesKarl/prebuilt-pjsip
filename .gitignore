@@ -4,3 +4,5 @@ openh264/
 pjproject-2.7.2.tar.bz2
 pjproject-2.7.2/
 shtools/
+*.class
+*.o
