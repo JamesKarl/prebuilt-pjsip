@@ -69,25 +69,30 @@ function make_libyuv() {
 	mkdir -p $DEST_LIBYUV
 	mkdir -p $DEST_LIBYUV_JNI_LIBS
 
+	echo cp -r $LIBYUV/libs/* $DEST_LIBYUV_JNI_LIBS
 	cp -r $LIBYUV/libs/* $DEST_LIBYUV_JNI_LIBS
 }
 
 #target support: armeabi, armeabi-v7a, arm64-v8a, x86, x86_64
 function prepare_libyuv() {
 	local target=$1
-	mkdir -p $DEST_LIBYUV
 
 	echo cp $DEST_LIBYUV_JNI_LIBS/$target/libyuv.so $DEST_LIBYUV
+	mkdir -p $DEST_LIBYUV
 	cp $DEST_LIBYUV_JNI_LIBS/$target/libyuv.so $DEST_LIBYUV
+
+	mkdir -p $DEST_SO_LIBS/$target
+	cp $DEST_LIBYUV_JNI_LIBS/$target/libyuv.so  $DEST_SO_LIBS/$target
 }
 
 #target support: armeabi, armeabi-v7a, arm64-v8a, x86, x86_64, mips, mips64
 function make_target(){
 	make_open_h264 $1
+	prepare_libyuv $1
 
 	cd $PJSIP_ROOT
 	local target=$1
-	TARGET_ABI=$target ./configure-android --use-ndk-cflags --with-openh264=$OPEN_H264 --with-libyuv=$LIBYUV
+	TARGET_ABI=$target ./configure-android --use-ndk-cflags --with-openh264=$OPEN_H264 --with-libyuv=$DEST_ROOT/libyuv/jni
 	make dep && make clean && make
 
 
@@ -117,9 +122,13 @@ function make_target(){
 }
 
 make_libyuv
-##supported target: armeabi, armeabi-v7a, arm64-v8a, x86, x86_64, mips, mips64, 
+prepare_libyuv armeabi
+##supported target: armeabi, armeabi-v7a, arm64-v8a, x86, x86_64 
 #make_target armeabi
-make_target armeabi-v7a
+#make_target armeabi-v7a
+#make_target arm64-v8a
+#make_target x86
+#make_target x86_64
 
 cd $CURRENT_DIR
 echo '========THE END========'
