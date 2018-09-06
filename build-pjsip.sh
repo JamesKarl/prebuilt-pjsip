@@ -52,8 +52,8 @@ function make_open_h264() {
 	# To build for 64-bit ABI, such as arm64, explicitly set NDKLEVEL to 21 or higher.
 	# NDKLEVEL specifies android api level, the default is 12
 
-	echo make OS=android NDKROOT=$ANDROID_NDK_ROOT TARGET=android-$NDKLEVEL NDKLEVEL=$NDKLEVEL ARCH=$architecture
-	make OS=android NDKROOT=$ANDROID_NDK_ROOT TARGET=android-$NDKLEVEL NDKLEVEL=$NDKLEVEL ARCH=$architecture
+	echo make OS=android NDKROOT=$ANDROID_NDK_ROOT TARGET=android-28 NDKLEVEL=$NDKLEVEL ARCH=$architecture
+	make OS=android NDKROOT=$ANDROID_NDK_ROOT TARGET=android-28 NDKLEVEL=$NDKLEVEL ARCH=$architecture
 
 	echo cp $OPEN_H264/libopenh264.so  $DEST_SO_LIBS/$target
 	mkdir -p $DEST_SO_LIBS/$target
@@ -121,14 +121,15 @@ function make_target(){
 	cp $APP_SWIG_ANDROID_SO/armeabi/$SO_NAME $DEST_SO_LIBS/$target
 }
 
+#make libyuv only once.
 make_libyuv
-prepare_libyuv armeabi
+
 ##supported target: armeabi, armeabi-v7a, arm64-v8a, x86, x86_64 
-#make_target armeabi
-#make_target armeabi-v7a
-#make_target arm64-v8a
-#make_target x86
-#make_target x86_64
+make_target armeabi
+make_target armeabi-v7a
+make_target arm64-v8a
+make_target x86
+make_target x86_64
 
 cd $CURRENT_DIR
 echo '========THE END========'

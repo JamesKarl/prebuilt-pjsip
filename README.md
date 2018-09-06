@@ -40,6 +40,19 @@
 2. download openh264 source code and build
 
 3. download libyuv source code and build
+note: guide here https://trac.pjsip.org/repos/ticket/1776
+a. download code here https://github.com/illuspas/libyuv-android.git
+b. run ndk-build at libyuv-android.
+c. Create dir out/Release under [libyuv_dir]/jni and copy the libyuv.so there. E.g:
+
+cd [libyuv_dir]
+mkdir -p jni/out/Release
+cp libs/armeabi/libyuv.so jni/out/Release
+
+Run PJSIP's configure and specify the Libyuv folder using --with-libyuv option. E.g:
+
+./configure --with-libyuv=[libyuv_dir]/jni
+
 
 4. run configure-android
 
